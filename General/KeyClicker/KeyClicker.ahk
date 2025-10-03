@@ -2,6 +2,7 @@
 #SingleInstance force
 
 clicker_on := False ;A variable to keep track of whether the program is running or not
+old_start_key := "" ;Variable that holds the previously used start key so the old hotkey can be disabled
 num_clicks := 0 ;Holds total num of clicks
 time_elapsed = 00:00:00 ;Holds total time spent clicking
 
@@ -25,11 +26,13 @@ Gui, MyGui:Add, Checkbox, vhold_button gsubmit_data x190 y75, Hold Button ;Check
 
 Gui, MyGui:Add, GroupBox, w240 h45 x30 y95 ;Box for grouping stats together
 
-Gui, MyGui:Add, Text, w150 x35 y+-35, Number of Clicks: %num_clicks%
+Gui, MyGui:Add, Text, w137 x35 y+-35, Number of Clicks: %num_clicks%
 
-Gui, MyGui:Add, Text, w150 x35 y120, Time Elapsed: %time_elapsed%
+Gui, MyGui:Add, Text, w137 x35 y120, Time Elapsed: %time_elapsed%
 
-Gui, MyGui:Add, Text, w60 x200 y107, Activation Key: -
+Gui, MyGui:Add, Text, w80 x180 y103, Activation Key:
+
+Gui, MyGui:Add, Hotkey, vstart_key gset_hotkey w90 h20 x173 y117 ;Hotkey box used to create the hotkey from user input
 
 Gui, MyGui:Add, Button, gstart_stop_click w290 h35 x5 y145, Start ;Built-in button used to start and stop pressing the key
 
@@ -41,8 +44,6 @@ Gui, MyGui:Destroy
 ExitApp
 
 ^/::WinActivate, ahk_exe AutoHotKeyU64.exe ;Bring Gui to the front
-
--:: gosub start_stop_click
 
 start_stop_click: ;Turns the program on when the start key is hit and turns it off if hit again
 if (clicker_on == true) { ;If the program is already running, turn it off
@@ -69,6 +70,14 @@ else { ;If the program isn't running, start running
     return
 }
 
+set_hotkey: ;Sets the hotkey to the given key during runtime
+Gui, Submit, NoHide
+if (old_start_key != "") { ;Checks if old_start_key has been assigned a value (if it has then a hotkey has been created) and deletes the old hotkey using the variable
+    Hotkey, %old_start_key%, Off
+}
+Hotkey, %start_key%, start_stop_click, On ;Creates a hotkey to activate the autoclicker
+old_start_key := start_key
+return
 
 _Run: ;Wrapper label for the _Run function
 _Run(wait_time, pressed_key, hold_button)
