@@ -7,8 +7,14 @@ if !FileExist("settings.txt") {
 
     settings_file := FileOpen("settings.txt", "w")
     settings_file.WriteLine("# Settings for AutoClicking software, please don't touch unless you know what you're doing.")
-    settings_file.Write("0,,0,")
+
     ; Settings are stored as follows: keystroke time, key to be pressed, hold key or not, activation key
+    settings_wait_time := 0
+    settings_pressed_key := ""
+    settings_hold_button := 0
+    settings_start_key := ""
+    settings_file.Write(settings_wait_time "," settings_pressed_key "," settings_hold_button "," settings_start_key)
+    settings_file.Close()
 
 } else {
 
@@ -20,7 +26,6 @@ if !FileExist("settings.txt") {
     settings_pressed_key := settings[2]
     settings_hold_button := settings[3]
     settings_start_key := settings[4]
-
     settings_file.Close()
 }
 
