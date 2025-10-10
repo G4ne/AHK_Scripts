@@ -104,7 +104,7 @@ else { ;If the program isn't running, start running
 }
 
 set_hotkey: ;Sets the hotkey to the given key during runtime
-Gui, Submit, NoHide
+gosub submit_data
 if (old_start_key != "") { ;Checks if old_start_key has been assigned a value (if it has then a hotkey has been created) and deletes the old hotkey
     Hotkey, %old_start_key%, Off
 }
