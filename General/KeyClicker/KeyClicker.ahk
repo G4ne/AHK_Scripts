@@ -1,10 +1,38 @@
 #NoEnv
 #SingleInstance force
+SetWorkingDir, A_InitialWorkingDir
+
+;Figure out if the settings file exists, creating it or loading it depending on the result
+if !FileExist("settings.txt") {
+
+    settings_file := FileOpen("settings.txt", "w")
+    settings_file.WriteLine("# Settings for AutoClicking software, please don't touch unless you know what you're doing.")
+    settings_file.Write("0,,0,")
+    ; Settings are stored as follows: keystroke time, key to be pressed, hold key or not, activation key
+
+} else {
+
+    settings_file := FileOpen("settings.txt", "r")
+    settings_file.ReadLine() ;Skip the first line
+    settings := StrSplit(settings_file.ReadLine(), ",")
+
+    settings_wait_time := settings[1]
+    settings_pressed_key := settings[2]
+    settings_hold_button := settings[3]
+    settings_start_key := settings[4]
+
+    settings_file.Close()
+}
 
 clicker_on := False ;A variable to keep track of whether the program is running or not
 old_start_key := "" ;Variable that holds the previously used start key so the old hotkey can be disabled
 num_clicks := 0 ;Holds total num of clicks
 time_elapsed = 00:00:00 ;Holds total time spent clicking
+
+if (settings_start_key != "") { ;Sets up a hotkey with the key from the settings if there is a key stored in settings
+    start_key := settings_start_key
+    gosub set_hotkey ;Sets up a hotkey from the settings
+}
 
 Gui, MyGui:New ;Begin building Gui
 
@@ -16,13 +44,13 @@ Gui, MyGui:Add, Text, x30 y10, Input the amount of miliseconds between keystroke
 
 Gui, MyGui:Add, Edit, vwait_time gsubmit_data w185 h20 x53 y30 ;Input box for the time between keystrokes
 
-Gui, MyGui:Add, UpDown, w200 h30, 0 ;UpDown on the input box
+Gui, MyGui:Add, UpDown, w200 h30, %settings_wait_time% ;UpDown on the input box
 
 Gui, MyGui:Add, Text, x42 y57, Input the key to be pressed.
 
-Gui, MyGui:Add, Edit, vpressed_key gsubmit_data w150 h20 x35 y75 ;Text box used to capture the key to be pressed
+Gui, MyGui:Add, Edit, vpressed_key gsubmit_data w150 h20 x35 y75, %settings_pressed_key% ;Text box used to capture the key to be pressed
 
-Gui, MyGui:Add, Checkbox, vhold_button gsubmit_data x190 y75, Hold Button ;Checkbox for holding / not holding the key (True = hold, False = don't hold)
+Gui, MyGui:Add, Checkbox, vhold_button gsubmit_data Checked%settings_hold_button% x190 y75, Hold Button ;Checkbox for holding / not holding the key (True = hold, False = don't hold)
 
 Gui, MyGui:Add, GroupBox, w240 h45 x30 y95 ;Box for grouping stats together
 
@@ -32,7 +60,7 @@ Gui, MyGui:Add, Text, w137 x35 y120, Time Elapsed: %time_elapsed%
 
 Gui, MyGui:Add, Text, w80 x180 y103, Activation Key:
 
-Gui, MyGui:Add, Hotkey, vstart_key gset_hotkey w90 h20 x173 y117 ;Hotkey box used to create the hotkey from user input
+Gui, MyGui:Add, Hotkey, vstart_key gset_hotkey w90 h20 x173 y117, %settings_start_key% ;Hotkey box used to create the hotkey from user input
 
 Gui, MyGui:Add, Button, gstart_stop_click w290 h35 x5 y145, Start ;Built-in button used to start and stop pressing the key
 
@@ -72,7 +100,7 @@ else { ;If the program isn't running, start running
 
 set_hotkey: ;Sets the hotkey to the given key during runtime
 Gui, Submit, NoHide
-if (old_start_key != "") { ;Checks if old_start_key has been assigned a value (if it has then a hotkey has been created) and deletes the old hotkey using the variable
+if (old_start_key != "") { ;Checks if old_start_key has been assigned a value (if it has then a hotkey has been created) and deletes the old hotkey
     Hotkey, %old_start_key%, Off
 }
 Hotkey, %start_key%, start_stop_click, On ;Creates a hotkey to activate the autoclicker
@@ -85,8 +113,12 @@ num_clicks++
 GuiControl, MyGui:, Static3, Number of Clicks: %num_clicks%
 return
 
-submit_data: ;Updates Gui variables with their appropriate values
+submit_data: ;Updates Gui variables with their appropriate values and saves the values to the settings file
 Gui, Submit, NoHide
+settings_file := FileOpen("settings.txt", "rw")
+settings_file.ReadLine() ; Skips first line
+settings_file.Write(wait_time "," pressed_key "," hold_button "," start_key)
+settings_file.Close()
 return
 
 
